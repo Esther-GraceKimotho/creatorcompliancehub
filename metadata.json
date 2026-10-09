@@ -1,0 +1,6 @@
+{
+  "name": "CreatorCompliance Kenya",
+  "description": "Mobile-first legal-tech and fintech solution for Kenyan digital content creators to manage 2026 tax obligations (eTIMS) and protect intellectual property.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
