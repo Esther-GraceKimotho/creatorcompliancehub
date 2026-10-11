@@ -4,19 +4,17 @@
  */
 
 import Dashboard from './components/Dashboard';
-import { BiometricProvider } from './context/BiometricContext';
+import { ProfileProvider } from './context/ProfileContext';
 import { IncomeProvider } from './context/IncomeContext';
-import BiometricModal from './components/BiometricModal';
-import BiometricSettingsModal from './components/BiometricSettingsModal';
+import ProfileModal from './components/ProfileModal';
 
 export default function App() {
   return (
-    <BiometricProvider>
+    <ProfileProvider>
       <IncomeProvider>
         <Dashboard />
-        <BiometricModal />
-        <BiometricSettingsModal />
+        <ProfileModal />
       </IncomeProvider>
-    </BiometricProvider>
+    </ProfileProvider>
   );
 }

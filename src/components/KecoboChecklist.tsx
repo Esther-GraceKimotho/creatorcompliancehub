@@ -36,7 +36,7 @@ import {
   X
 } from 'lucide-react';
 import { exportElementToPdf } from '../utils/pdfGenerator';
-import { useBiometrics } from '../context/BiometricContext';
+import { useProfile } from '../context/ProfileContext';
 import SensitiveShield from './SensitiveShield';
 
 const INITIAL_CHECKLIST_PHASES: KecoboChecklistPhase[] = [
@@ -124,7 +124,7 @@ const INITIAL_CHECKLIST_PHASES: KecoboChecklistPhase[] = [
         id: 'c2_3',
         phaseId: 2,
         title: 'KRA PIN Association for Creator Tax Compliance',
-        description: 'Link your individual KRA PIN (e.g. P051829471Z) to reconcile copyright licensing royalties and eTIMS withholding taxes.',
+        description: 'Link your individual KRA PIN (e.g. P000000000A) to reconcile copyright licensing royalties and eTIMS withholding taxes.',
         requirementType: 'RECOMMENDED',
         legalRef: 'Finance Act 2023/2026 WHT on Digital Content',
         officialTip: 'Ensures CMOs (MCSK/KAMP/PRISK) remit withholding tax certificates directly to your iTax ledger.',
@@ -333,22 +333,34 @@ export default function KecoboChecklist() {
       console.error(e);
     }
     return {
-      title: 'The Nairobi Vibe (Season 1)',
+      title: '',
       workType: 'AUDIOVISUAL',
-      creatorName: 'Maina Kamau',
-      nationalId: '29384722',
-      kraPin: 'P051829471Z',
-      yearCreated: 2026,
-      isPublished: true,
-      publicationDate: '2026-03-01',
-      territory: 'Kenya & Global Online',
-      coCreators: 'Sole Creator / Independent Studio',
-      description: 'Documentary style creative lifestyle & Kenyan culture video series produced for YouTube & digital distribution.',
+      creatorName: '',
+      nationalId: '',
+      kraPin: '',
+      yearCreated: new Date().getFullYear(),
+      isPublished: false,
+      publicationDate: '',
+      territory: 'Kenya & Worldwide',
+      coCreators: '',
+      description: '',
       statutoryFeeKes: 1000,
-      ecitizenInvoiceRef: 'ECIT-KECOBO-88194',
-      mpesaCode: 'SLK79X21PQ'
+      ecitizenInvoiceRef: '',
+      mpesaCode: ''
     };
   });
+
+  const { profile } = useProfile();
+
+  // Populate dossier from profile if creatorName/nationalId are empty
+  useEffect(() => {
+    setDossier(prev => ({
+      ...prev,
+      creatorName: prev.creatorName || profile.creatorName || '',
+      nationalId: prev.nationalId || profile.nationalId || '',
+      kraPin: prev.kraPin || profile.kraPin || ''
+    }));
+  }, [profile.creatorName, profile.nationalId, profile.kraPin]);
 
   const [filterType, setFilterType] = useState<'all' | 'mandatory' | 'pending' | 'completed'>('all');
   const [expandedPhases, setExpandedPhases] = useState<Record<number, boolean>>({
@@ -363,16 +375,13 @@ export default function KecoboChecklist() {
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'checklist' | 'dossier' | 'guide'>('checklist');
 
-  const { settings, triggerBiometricAuth, isUnlocked } = useBiometrics();
-  const BiometricIcon = settings.primaryBiometric === 'fingerprint' ? Fingerprint : ScanFace;
-
   const reportContainerRef = useRef<HTMLDivElement>(null);
   const ceaseDesistContainerRef = useRef<HTMLDivElement>(null);
 
   const [isCeaseDesistModalOpen, setIsCeaseDesistModalOpen] = useState(false);
   const [isExportingCeaseDesistPdf, setIsExportingCeaseDesistPdf] = useState(false);
   const [infringerDetails, setInfringerDetails] = useState({
-    name: 'Unauthorized Commercial Media / Digital Broadcaster Ltd',
+    name: 'Infringing Entity / Platform Account',
     platform: 'Social Media / YouTube / TikTok / Broadcast TV',
     urlOrChannel: 'https://example.com/unauthorized-repost-or-clip',
     claimedSettlementFeeKes: 'KES 250,000',
@@ -480,14 +489,6 @@ export default function KecoboChecklist() {
   const handleDownloadComplianceReport = async () => {
     if (!reportContainerRef.current) return;
 
-    if (settings.isEnabled && settings.requireAuthForPdfExport) {
-      const authorized = await triggerBiometricAuth({
-        reason: `Authenticate with FaceID / Touch ID to export official KECOBO IP Registration Audit for "${dossier.title}"`,
-        target: 'PDF_EXPORT'
-      });
-      if (!authorized) return;
-    }
-
     setIsExportingPdf(true);
     setExportNotice(null);
     try {
@@ -511,14 +512,6 @@ export default function KecoboChecklist() {
   // Download Formal Statutory Legal Notice & Cease-and-Desist Notice (PDF)
   const handleDownloadCeaseAndDesistPdf = async () => {
     if (!ceaseDesistContainerRef.current) return;
-
-    if (settings.isEnabled && settings.requireAuthForPdfExport) {
-      const authorized = await triggerBiometricAuth({
-        reason: `Authenticate with FaceID / Touch ID to export official KECOBO Cease and Desist Notice (PDF) for "${dossier.title}"`,
-        target: 'KECOBO'
-      });
-      if (!authorized) return;
-    }
 
     setIsExportingCeaseDesistPdf(true);
     setExportNotice(null);
@@ -637,7 +630,7 @@ export default function KecoboChecklist() {
                 activeTab === 'guide' ? 'bg-white text-slate-900 shadow-sm' : 'text-blue-200 hover:text-white'
               }`}
             >
-              Kenyan IP Legal Guide
+              IP Guide & Fee Schedule
             </button>
           </div>
 
@@ -743,7 +736,7 @@ export default function KecoboChecklist() {
             <div className="flex items-center gap-2">
               <span className="font-bold text-slate-500 uppercase">Target Work:</span>
               <span className="font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
-                {dossier.title}
+                {dossier.title || 'Untitled Work (Click Edit to configure)'}
               </span>
               <span className="text-slate-500">({dossier.workType})</span>
             </div>
@@ -1053,31 +1046,126 @@ export default function KecoboChecklist() {
       {activeTab === 'guide' && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6">
           <div className="border-b border-slate-100 pb-4">
-            <h2 className="text-lg font-bold text-slate-900">Kenyan Creator Intellectual Property Guide</h2>
+            <h2 className="text-lg font-bold text-slate-900">Kenyan Creator Intellectual Property Guide & KECOBO Fee Schedule</h2>
             <p className="text-xs text-slate-500">
-              Key legal provisions under the Kenya Copyright Act, CMO royalties, and enforcement mechanisms.
+              Statutory pricing breakdown (what is free vs paid), legal provisions under the Kenya Copyright Act Cap 130, and enforcement mechanisms.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+          {/* Pricing & Fee Transparency Table */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-indigo-600" />
+                <span>KECOBO Statutory Pricing Schedule: What is Free vs Paid?</span>
+              </h3>
+              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                Official NRR 2026 Gazetted Rates
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Free Services Card */}
+              <div className="bg-emerald-50/70 border-2 border-emerald-200 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center gap-2 text-emerald-900 font-extrabold text-sm">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <span>WHAT IS 100% FREE (NO STATUTORY CHARGE)</span>
+                </div>
+                <ul className="text-xs text-slate-700 space-y-2.5">
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-600 font-bold">✓</span>
+                    <div>
+                      <strong>Automatic Copyright Vesting upon Fixation:</strong> Under Section 22(1) of the Kenya Copyright Act, copyright exists automatically the moment your work is recorded/fixed in tangible form. You pay nothing to own copyright.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-600 font-bold">✓</span>
+                    <div>
+                      <strong>NRR Portal Account Creation & eCitizen Sign-up:</strong> Creating an account on the National Rights Registry (nrr.copyright.go.ke) and linking your Kenyan National ID or Alien Card is completely free of charge.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-600 font-bold">✓</span>
+                    <div>
+                      <strong>Filing Piracy / Criminal Infringement Complaints:</strong> Lodging a formal infringement complaint or reporting piracy to the KECOBO Enforcement & Anti-Piracy Unit is completely free.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-600 font-bold">✓</span>
+                    <div>
+                      <strong>Digital Takedown Notices (Section 35B):</strong> Serving statutory notice of infringement on internet service providers (ISPs) or online hosting platforms carries zero government fees.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-600 font-bold">✓</span>
+                    <div>
+                      <strong>Public Education, Clinics & Creator Sensitization:</strong> Attending official KECOBO creator webinars, training workshops, and legal guidance forums is free to the public.
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Paid Services Card */}
+              <div className="bg-indigo-50/70 border-2 border-indigo-200 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center gap-2 text-indigo-950 font-extrabold text-sm">
+                  <Scale className="w-5 h-5 text-indigo-600" />
+                  <span>WHAT IS PAID (STATUTORY GOVERNMENT FEES)</span>
+                </div>
+                <ul className="text-xs text-slate-700 space-y-2.5">
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-600 font-bold font-mono">1.</span>
+                    <div>
+                      <strong>Official Copyright Registration Certificate:</strong> <span className="font-bold text-indigo-900">KES 1,000 per creative work</span>. Applies to Audiovisual (YouTube vlog, series, film), Musical work, Sound Recording, Literary work (script, book), Artistic design, or Software. Paid exclusively via eCitizen Paybill <strong>222222</strong>.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-600 font-bold font-mono">2.</span>
+                    <div>
+                      <strong>Commissioner for Oaths Affidavit (Witnessing):</strong> Approximately <span className="font-bold text-indigo-900">KES 500 – KES 1,500</span> (standard private legal fee paid to an independent advocate/commissioner if swearing formal ownership affidavits).
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-600 font-bold font-mono">3.</span>
+                    <div>
+                      <strong>Certified Copy of Register / Document:</strong> <span className="font-bold text-indigo-900">KES 500</span> for individual natural persons, and <span className="font-bold text-indigo-900">KES 1,000</span> for registered corporate entities.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-600 font-bold font-mono">4.</span>
+                    <div>
+                      <strong>Official Register Search / Verification:</strong> Standard search fee of <span className="font-bold text-indigo-900">KES 500</span> to verify title ownership and prior filings in the KECOBO NRR database.
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-600 font-bold font-mono">5.</span>
+                    <div>
+                      <strong>Correction or Amendment of Register:</strong> Statutory modification fee of <span className="font-bold text-indigo-900">KES 500</span> to amend creator title, ownership transfer deed, or collaborator shares.
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm pt-2">
             <div className="space-y-4">
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
                 <div className="flex items-center gap-2 text-indigo-700 font-bold">
                   <Scale className="w-4 h-4" />
-                  <span>Why Register with KECOBO NRR?</span>
+                  <span>Why Register if Creation is Automatically Free?</span>
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  While copyright automatically vests upon fixation, registration with the National Rights Registry creates <strong>prima facie evidence of legal ownership</strong> in Kenyan courts, facilitates immediate takedowns on YouTube & Meta, and is mandatory for CMO royalty collection.
+                  While copyright legally exists without registration, paying the KES 1,000 statutory registration fee provides an official Certificate of Copyright Registration. In Kenyan courts and arbitrations, this serves as <strong>prima facie evidence of legal ownership</strong> (shifting the burden of proof onto the infringer), fast-tracks YouTube/Meta digital rights manager access, and is mandatory to receive collective royalty distributions from CMOs (MCSK, KAMP, PRISK).
                 </p>
               </div>
 
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
                 <div className="flex items-center gap-2 text-indigo-700 font-bold">
                   <Building2 className="w-4 h-4" />
-                  <span>Official Statutory Fees (2026)</span>
+                  <span>Payment Gateway & Reconciliation</span>
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  The standard statutory fee for digital registration is <strong>KES 1,000 per creative work</strong>, payable exclusively through government eCitizen Paybill <strong>222222</strong>.
+                  All KECOBO statutory payments are strictly cashless via the Government eCitizen platform. Paybill: <strong>222222</strong>. Never pay cash to any individual agent or officer.
                 </p>
               </div>
             </div>
@@ -1086,7 +1174,7 @@ export default function KecoboChecklist() {
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
                 <div className="flex items-center gap-2 text-indigo-700 font-bold">
                   <ShieldCheck className="w-4 h-4" />
-                  <span>Anti-Piracy Remedies & Penalties</span>
+                  <span>Anti-Piracy Remedies & Statutory Penalties</span>
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   Under Section 38 of the Kenya Copyright Act, unauthorized commercial broadcasting or re-uploading carries criminal penalties of up to <strong>KES 800,000 fine</strong>, imprisonment up to <strong>10 years</strong>, or civil statutory damages.
@@ -1150,7 +1238,7 @@ export default function KecoboChecklist() {
                 <div className="inline-block bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-lg">
                   <span className="text-[10px] uppercase font-bold text-indigo-700 block">Report Ref</span>
                   <span className="text-xs font-mono font-bold text-indigo-950">
-                    KECOBO-AUDIT-{dossier.yearCreated}-{(dossier.nationalId || '29384722').slice(-4)}
+                    KECOBO-AUDIT-{dossier.yearCreated}-{(dossier.nationalId || '0000').slice(-4)}
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-400 mt-1">
@@ -1271,8 +1359,8 @@ export default function KecoboChecklist() {
               This compliance report is compiled under the guidelines of the Kenya Copyright Act Cap 130 and the National Rights Registry regulations. It confirms that the author has fulfilled the evidentiary fixation standards necessary for statutory registration. Official copyright certificates are issued exclusively by the Kenya Copyright Board upon eCitizen fee settlement (KES 1,000) and examiner approval.
             </p>
             <div className="flex justify-between items-center pt-3 border-t border-slate-100 text-[10px]">
-              <span>CreatorCompliance Kenya • Biometric Cryptographic Seal</span>
-              <span className="font-mono text-slate-400">DIGITAL-FIDO2-VERIFIED-AUTH</span>
+              <span>CreatorCompliance Kenya • Verified Digital IP Audit Seal</span>
+              <span className="font-mono text-slate-400">DIGITAL-NRR-VERIFIED-AUTH</span>
             </div>
           </div>
         </div>
@@ -1401,7 +1489,7 @@ export default function KecoboChecklist() {
                     Issued Pursuant to Sections 22, 32, 35 & 38 of the Kenya Copyright Act (Cap 130) • Laws of Kenya
                   </p>
                   <div className="pt-2 flex justify-between items-center text-[10px] font-mono text-slate-500 border-t border-slate-200 mt-3">
-                    <span>REF: KECOBO/CD-STAT/{new Date().getFullYear()}/{(dossier.nationalId || '29384722').slice(-4)}-{Date.now().toString(16).slice(-4).toUpperCase()}</span>
+                    <span>REF: KECOBO/CD-STAT/{new Date().getFullYear()}/{(dossier.nationalId || '0000').slice(-4)}-{Date.now().toString(16).slice(-4).toUpperCase()}</span>
                     <span>DATE: {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                   </div>
                 </div>

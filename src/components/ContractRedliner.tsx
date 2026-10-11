@@ -27,7 +27,7 @@ import {
   Info
 } from 'lucide-react';
 import { exportElementToPdf } from '../utils/pdfGenerator';
-import { useBiometrics } from '../context/BiometricContext';
+import { useProfile } from '../context/ProfileContext';
 
 // Sample Contracts for instant 1-click testing
 const SAMPLE_CONTRACT_PREDATORY = `
@@ -55,7 +55,7 @@ Brand shall pay Creator a gross fee of $2,500 USD within sixty (60) days after d
 
 const SAMPLE_CONTRACT_FAIR = `
 STANDARD CREATOR DIGITAL SPONSORSHIP AGREEMENT
-Between: Horizon Consumer Goods Kenya PLC ("Brand") and Maina Kamau ("Creator")
+Between: Brand Client PLC ("Brand") and Content Creator ("Creator")
 
 1. DELIVERABLES & TIMELINE:
 One (1) 90-second YouTube review and two (2) Instagram Stories delivered by 15th April 2026.
@@ -75,9 +75,9 @@ Total fee: KES 250,000. 50% deposit (KES 125,000) payable upon contract executio
 
 export default function ContractRedliner() {
   const [activeSubTab, setActiveSubTab] = useState<'redline' | 'invoice'>('redline');
-  const [contractText, setContractText] = useState(SAMPLE_CONTRACT_PREDATORY);
-  const [contractTitle, setContractTitle] = useState('Brand Partnership & Influencer Release');
-  const [clientName, setClientName] = useState('Global Apex Media Agency Ltd');
+  const [contractText, setContractText] = useState('');
+  const [contractTitle, setContractTitle] = useState('Brand Partnership Agreement');
+  const [clientName, setClientName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [redlineReport, setRedlineReport] = useState<ContractRedlineReport | null>(null);
   const [copiedClauseId, setCopiedClauseId] = useState<string | null>(null);
@@ -85,42 +85,49 @@ export default function ContractRedliner() {
 
   const reportContainerRef = useRef<HTMLDivElement>(null);
   const invoiceContainerRef = useRef<HTMLDivElement>(null);
-  const { triggerBiometricAuth } = useBiometrics();
+  const { profile } = useProfile();
 
   // International Invoice Form State
   const [invoiceData, setInvoiceData] = useState<InternationalInvoiceData>({
-    invoiceNumber: `INV-KE-${new Date().getFullYear()}-042`,
+    invoiceNumber: `INV-KE-${new Date().getFullYear()}-001`,
     issueDate: new Date().toISOString().slice(0, 10),
     dueDate: new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10),
-    creatorName: 'Maina Kamau',
-    creatorAddress: 'Kilimani, Argwings Kodhek Rd, Nairobi, Kenya',
-    creatorKraPin: 'P051829471Z',
-    creatorBankName: 'Equity Bank Kenya Ltd (Nairobi Supreme Centre)',
-    creatorAccountNumber: '0180293847291',
-    creatorSwiftBic: 'EQBLKENA',
-    intermediaryBankRouting: 'CITIUS33 (Citibank N.A. New York correspondent)',
-    creatorEmail: 'maina.kamau@creatornairobi.ke',
-    clientName: 'Apex Global Brand Partners Inc',
-    clientCountry: 'United States / Delaware',
-    clientEmail: 'billing@apexbrandglobal.com',
+    creatorName: profile.creatorName || '',
+    creatorAddress: '',
+    creatorKraPin: profile.kraPin || '',
+    creatorBankName: '',
+    creatorAccountNumber: '',
+    creatorSwiftBic: '',
+    intermediaryBankRouting: '',
+    creatorEmail: profile.email || '',
+    clientName: '',
+    clientCountry: '',
+    clientEmail: '',
     currency: 'USD',
     items: [
       {
-        description: 'Sponsored 60s Integration & Production (4K Master)',
+        description: 'Sponsored Content Integration & Video Production',
         deliverableType: 'Video Production',
-        amount: 2000,
-        usageRights: '60-day non-exclusive Kenya digital distribution'
-      },
-      {
-        description: 'Commercial Social Whitelisting Licensing Fee (30 Days)',
-        deliverableType: 'Digital Ad Rights',
-        amount: 500,
-        usageRights: 'Meta & TikTok Spark Ads limited run'
+        amount: 1500,
+        usageRights: '60-day non-exclusive regional digital distribution'
       }
     ],
     notes: 'Services rendered remotely from Kenya. Value Added Tax (VAT) exempt under Section 8 of the Kenya VAT Act (Export of Services reverse-charge regime applies).',
-    paymentTerms: '50% advance deposit paid. Balance due within 14 days of broadcast. Wire transfer wire fees absorbed by sender. Late payments incur 2% interest per 30-day period.'
+    paymentTerms: '50% advance deposit paid upon signing. Balance due within 14 days of broadcast. Wire transfer wire fees absorbed by sender. Standard Kenyan Withholding Tax certificate to be provided.'
   });
+
+  // Sync with profile if loaded
+  useEffect(() => {
+    if (profile.creatorName && !invoiceData.creatorName) {
+      setInvoiceData(prev => ({ ...prev, creatorName: profile.creatorName }));
+    }
+    if (profile.kraPin && !invoiceData.creatorKraPin) {
+      setInvoiceData(prev => ({ ...prev, creatorKraPin: profile.kraPin }));
+    }
+    if (profile.email && !invoiceData.creatorEmail) {
+      setInvoiceData(prev => ({ ...prev, creatorEmail: profile.email }));
+    }
+  }, [profile.creatorName, profile.kraPin, profile.email]);
 
   const handleRunRedline = async () => {
     if (!contractText.trim() || contractText.trim().length < 20) {
@@ -195,13 +202,7 @@ export default function ContractRedliner() {
     }
   };
 
-  const handleExportInvoicePdf = async () => {
-    const authorized = await triggerBiometricAuth({
-      reason: 'Authorize biometric identity to generate international cross-border invoice',
-      target: 'PDF_EXPORT'
-    });
-    if (!authorized) return;
-
+  const handleExportInvoicePdf = () => {
     if (invoiceContainerRef.current) {
       exportElementToPdf(invoiceContainerRef.current, {
         filename: `International_Invoice_${invoiceData.invoiceNumber}_${Date.now()}.pdf`,

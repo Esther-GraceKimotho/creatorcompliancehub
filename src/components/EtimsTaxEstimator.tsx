@@ -18,7 +18,6 @@ import {
   Scale
 } from 'lucide-react';
 import { exportElementToPdf } from '../utils/pdfGenerator';
-import { useBiometrics } from '../context/BiometricContext';
 import { useIncome } from '../context/IncomeContext';
 
 interface EtimsTaxEstimatorProps {
@@ -30,7 +29,6 @@ export default function EtimsTaxEstimator({
   onNavigateToInvoice,
   onNavigateToIncomeLogger 
 }: EtimsTaxEstimatorProps) {
-  const { settings, triggerBiometricAuth } = useBiometrics();
   const { 
     syncedTaxInputs, 
     lastSyncedAt, 
@@ -46,14 +44,14 @@ export default function EtimsTaxEstimator({
       return syncedTaxInputs;
     }
     return {
-      monthlyAdSense: 120800, // Matches default October sample data (AdSense + Spotify + TikTok + Skiza)
-      monthlyBrandDeals: 290000, // Matches October sample data (Safaricom + Equity Bank)
-      monthlyDigitalProducts: 32500,
-      monthlyServices: 60000,
+      monthlyAdSense: 0,
+      monthlyBrandDeals: 0,
+      monthlyDigitalProducts: 0,
+      monthlyServices: 0,
       monthlyOtherIncome: 0,
-      monthlyEtimsExpenses: 110000,
-      monthlyNonEtimsExpenses: 25000,
-      hasWithholdingTaxApplied: true,
+      monthlyEtimsExpenses: 0,
+      monthlyNonEtimsExpenses: 0,
+      hasWithholdingTaxApplied: false,
       selectedRegime: 'GRADUATED'
     };
   });
@@ -141,14 +139,6 @@ export default function EtimsTaxEstimator({
 
   const handleExportPDF = async () => {
     if (!reportRef.current) return;
-
-    if (settings.isEnabled && settings.requireAuthForPdfExport) {
-      const authorized = await triggerBiometricAuth({
-        reason: 'Authorize FaceID / Fingerprint to export 2026 eTIMS Tax Liability Projection PDF',
-        target: 'TAX_ESTIMATES'
-      });
-      if (!authorized) return;
-    }
 
     setIsExporting(true);
     try {

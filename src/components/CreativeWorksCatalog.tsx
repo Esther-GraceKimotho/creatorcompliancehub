@@ -29,72 +29,12 @@ import {
   Gavel,
   FileSignature
 } from 'lucide-react';
-import { useBiometrics } from '../context/BiometricContext';
+import { useProfile } from '../context/ProfileContext';
 import { exportElementToPdf } from '../utils/pdfGenerator';
 
 const STORAGE_KEY = 'creator_compliance_works_catalog_v1';
 
-const INITIAL_WORKS: CatalogedWork[] = [
-  {
-    id: 'work-101',
-    title: 'Silicon Savannah: The Kenyan Tech Odyssey (Docuseries Ep 1)',
-    workType: 'VIDEO',
-    description: 'High production 42-minute investigative documentary analyzing the evolution of M-PESA and Nairobi startup ecosystem.',
-    timestamp: '2026-02-14T08:30:00.000Z',
-    formattedTimestamp: '14 Feb 2026, 11:30 EAT',
-    contentHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-    fileSize: '4.8 GB (ProRes 422 Master)',
-    fileName: 'Silicon_Savannah_Ep1_Master_4K.mov',
-    externalUrl: 'https://youtube.com/watch?v=sample-tech-odyssey',
-    collaborators: 'Maina Kamau (Director/Writer), Achieng Otieno (Cinematography)',
-    tags: ['Documentary', 'Tech', 'Nairobi', 'Audiovisual'],
-    status: 'CERTIFIED',
-    nrrReference: 'NRR-2026-84920',
-    licenseType: 'ALL_RIGHTS_RESERVED',
-    creatorName: 'Maina Kamau',
-    creatorIdNumber: '29384722',
-    proofSignature: 'SHA256:EAT-20260214-KECOBO-NRR-VALID'
-  },
-  {
-    id: 'work-102',
-    title: 'Nairobi Cyberpunk Anthem (Original Afro-House Beat & Vocal Stem)',
-    workType: 'MUSIC',
-    description: 'Original 124 BPM electronic Afro-house composition recorded at Kilimani Soundworks. Includes vocal stems and MIDI charts.',
-    timestamp: '2026-03-01T14:15:22.000Z',
-    formattedTimestamp: '01 Mar 2026, 17:15 EAT',
-    contentHash: '8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4',
-    fileSize: '142 MB (24-bit WAV & Stems)',
-    fileName: 'Nairobi_Cyberpunk_Master_24bit.wav',
-    externalUrl: 'https://spotify.com/track/sample-nairobi-anthem',
-    collaborators: 'Maina Kamau (Producer), DJ Kevo (Co-Arranger)',
-    tags: ['Music', 'AfroHouse', 'SoundRecording', 'SkizaTune'],
-    status: 'LODGED_KECOBO',
-    nrrReference: 'NRR-2026-90214',
-    licenseType: 'COMMERCIAL_LIMITED',
-    creatorName: 'Maina Kamau',
-    creatorIdNumber: '29384722',
-    proofSignature: 'SHA256:EAT-20260301-STAMP-CHAIN-783'
-  },
-  {
-    id: 'work-103',
-    title: 'The Creator Economy Tax Shield: Navigating KRA eTIMS & Section 35 WHT',
-    workType: 'ARTICLE',
-    description: 'Comprehensive 12,000-word investigative guide breaking down Kenyan creator tax rights, digital royalties, and deductible expenses.',
-    timestamp: '2026-03-20T06:00:00.000Z',
-    formattedTimestamp: '20 Mar 2026, 09:00 EAT',
-    contentHash: 'ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb',
-    fileSize: '18 MB (PDF + EPUB)',
-    fileName: 'Creator_Tax_Shield_Kenya_2026.pdf',
-    externalUrl: 'https://medium.com/@mainakamau/creator-tax-shield-2026',
-    collaborators: 'Maina Kamau (Author)',
-    tags: ['Literary', 'Taxation', 'Guide', 'E-Book'],
-    status: 'TIMESTAMPED',
-    licenseType: 'CC_BY_NC',
-    creatorName: 'Maina Kamau',
-    creatorIdNumber: '29384722',
-    proofSignature: 'SHA256:EAT-20260320-TAMPER-EVIDENT-PROOF'
-  }
-];
+const INITIAL_WORKS: CatalogedWork[] = [];
 
 interface CreativeWorksCatalogProps {
   onLodgeWithKecobo?: (work: CatalogedWork) => void;
@@ -105,12 +45,16 @@ export default function CreativeWorksCatalog({ onLodgeWithKecobo }: CreativeWork
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          // Filter out legacy placeholder mock works
+          return parsed.filter(w => !w.id?.startsWith('work-10'));
+        }
       }
     } catch (e) {
       console.error('Error loading works from localStorage:', e);
     }
-    return INITIAL_WORKS;
+    return [];
   });
 
   const [activeFilter, setActiveFilter] = useState<'ALL' | CreativeWorkType>('ALL');
@@ -120,7 +64,7 @@ export default function CreativeWorksCatalog({ onLodgeWithKecobo }: CreativeWork
   const [copiedHashId, setCopiedHashId] = useState<string | null>(null);
 
   const certContainerRef = useRef<HTMLDivElement>(null);
-  const { triggerBiometricAuth } = useBiometrics();
+  const { profile } = useProfile();
 
   // Save to localStorage on change
   useEffect(() => {
@@ -174,7 +118,8 @@ export default function CreativeWorksCatalog({ onLodgeWithKecobo }: CreativeWork
     let finalHash = computedHash;
     if (!finalHash) {
       // Deterministic hash based on text payload
-      const str = `${newTitle}|${newType}|${now.toISOString()}|Maina Kamau`;
+      const author = profile.creatorName || 'Creative Author';
+      const str = `${newTitle}|${newType}|${now.toISOString()}|${author}`;
       finalHash = Array.from(new TextEncoder().encode(str))
         .reduce((acc, byte) => acc + byte.toString(16).padStart(2, '0'), '')
         .slice(0, 64)
@@ -196,8 +141,8 @@ export default function CreativeWorksCatalog({ onLodgeWithKecobo }: CreativeWork
       tags: newTags.split(',').map(t => t.trim()).filter(Boolean),
       status: 'TIMESTAMPED',
       licenseType: newLicense,
-      creatorName: 'Maina Kamau',
-      creatorIdNumber: '29384722',
+      creatorName: profile.creatorName || 'Creative Author',
+      creatorIdNumber: profile.nationalId || 'N/A',
       proofSignature: `SHA256:EAT-${now.toISOString().slice(0, 10).replace(/-/g, '')}-VAULT-SIGNED`
     };
 
@@ -226,13 +171,7 @@ export default function CreativeWorksCatalog({ onLodgeWithKecobo }: CreativeWork
     setTimeout(() => setCopiedHashId(null), 2500);
   };
 
-  const handleExportCertificatePdf = async (work: CatalogedWork) => {
-    const authorized = await triggerBiometricAuth({
-      reason: `Authorize biometric verification to generate immutable IP Creation Proof Certificate for "${work.title}"`,
-      target: 'PDF_EXPORT'
-    });
-    if (!authorized) return;
-
+  const handleExportCertificatePdf = (work: CatalogedWork) => {
     if (certContainerRef.current) {
       exportElementToPdf(certContainerRef.current, {
         filename: `IP_Proof_Of_Creation_${work.id}_${Date.now()}.pdf`,

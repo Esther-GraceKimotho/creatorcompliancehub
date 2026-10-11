@@ -10,57 +10,38 @@ import TaxCalendar from './TaxCalendar';
 import IncomeLogger from './IncomeLogger';
 import ContractRedliner from './ContractRedliner';
 import CrossBorderTaxEstimator from './CrossBorderTaxEstimator';
-import { useBiometrics } from '../context/BiometricContext';
+import { useProfile } from '../context/ProfileContext';
+import { useIncome } from '../context/IncomeContext';
 import { 
   CheckCircle2, 
-  FileText, 
   Settings, 
   BookOpen, 
   User, 
   Menu, 
   X, 
-  ScanFace, 
-  Fingerprint, 
-  Lock, 
-  Unlock, 
   ShieldCheck, 
-  SlidersHorizontal,
   CalendarDays,
-  DollarSign,
-  Scale,
-  Globe2
+  Download,
+  Building2
 } from 'lucide-react';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'income' | 'taxes' | 'calendar' | 'ip' | 'redline' | 'crossborder' | 'ai' | 'kb' | 'setup'>('overview');
-  const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { 
-    isUnlocked, 
-    settings, 
-    lockVault, 
-    triggerBiometricAuth, 
-    setIsSettingsOpen 
-  } = useBiometrics();
+  const { profile, setIsEditModalOpen } = useProfile();
+  const { monthlySummary } = useIncome();
 
-  const BiometricIcon = settings.primaryBiometric === 'fingerprint' ? Fingerprint : ScanFace;
-
-  const handleDownloadKraReport = async () => {
-    const authorized = await triggerBiometricAuth({
-      reason: 'Authorize FaceID / Fingerprint to generate confidential KRA Tax & Withholding report',
-      target: 'PDF_EXPORT'
-    });
-    if (!authorized) return;
-
-    // Simulate export
+  const handleDownloadKraReport = () => {
+    const creatorName = profile.creatorName || 'Digital Creator';
+    const kraPin = profile.kraPin || 'Pending PIN';
     const blob = new Blob([
-      `KRA Creator Tax Compliance Report 2026\nPIN: P051829471Z\nTaxpayer: Maina Kamau\nStatus: Compliant\nGenerated: ${new Date().toISOString()}`
+      `KRA Creator Tax Compliance Report 2026\nPIN: ${kraPin}\nTaxpayer: ${creatorName}\nNational ID: ${profile.nationalId || 'N/A'}\nStatus: Compliant\nGenerated: ${new Date().toISOString()}`
     ], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `KRA_Compliance_Report_P051829471Z_${Date.now()}.txt`;
+    a.download = `KRA_Compliance_Report_${kraPin}_${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -79,52 +60,15 @@ export default function Dashboard() {
           <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center shrink-0">
             <div className="w-4 h-4 border-2 border-white rounded-sm"></div>
           </div>
-          <h1 className="text-lg md:text-xl font-bold tracking-tight text-blue-900 truncate hidden sm:block">CreatorCompliance <span className="text-blue-500">Kenya</span></h1>
+          <h1 className="text-lg md:text-xl font-bold tracking-tight text-blue-900 truncate hidden sm:block">
+            CreatorCompliance <span className="text-blue-500">Kenya</span>
+          </h1>
         </div>
 
         {/* Header Right Actions */}
         <div className="flex items-center gap-3 md:gap-5">
-          {/* Biometric Vault Quick Indicator */}
-          <div className="flex items-center gap-1.5">
-            {isUnlocked ? (
-              <div className="flex items-center gap-1 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full text-xs font-bold text-emerald-800 shadow-2xs">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="hidden sm:inline">Biometrics Active</span>
-                <button
-                  onClick={lockVault}
-                  title="Lock Sensitive Data Vault"
-                  className="ml-1 p-0.5 hover:bg-emerald-200/60 rounded text-emerald-700"
-                >
-                  <Lock className="w-3 h-3" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => triggerBiometricAuth({
-                  reason: 'Unlock sensitive KRA iTax and KECOBO Copyright credentials with biometrics',
-                  target: 'SYSTEM'
-                })}
-                className="flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-3 py-1 rounded-full text-xs font-bold text-amber-900 transition-all shadow-2xs group"
-                title="Click to unlock with FaceID / Touch ID"
-              >
-                <BiometricIcon className="w-3.5 h-3.5 text-amber-600 group-hover:scale-110 transition-transform animate-pulse" />
-                <span>Vault Locked</span>
-                <span className="hidden md:inline text-[10px] font-normal text-amber-700">(Tap to Unlock)</span>
-              </button>
-            )}
-
-            {/* Security Config Button */}
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors"
-              title="Biometric Security & Vault Settings"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-            </button>
-          </div>
-
           <div className="hidden sm:flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
             <span className="text-xs font-semibold text-emerald-700">eTIMS Live</span>
           </div>
 
@@ -132,23 +76,21 @@ export default function Dashboard() {
             <div className="text-right hidden sm:block">
               <div className="flex items-center justify-end gap-1">
                 <span className="text-[10px] font-medium text-slate-400 uppercase">PIN:</span>
-                <SensitiveShield 
-                  inline 
-                  value="P051829471Z" 
-                  type="kraPin" 
-                  label="KRA PIN" 
-                  target="KRA" 
-                />
+                <span className="text-xs font-mono font-bold text-slate-700">
+                  {profile.kraPin || 'Not set'}
+                </span>
               </div>
-              <p className="text-xs font-bold text-slate-800">Maina Kamau</p>
+              <p className="text-xs font-bold text-slate-800">
+                {profile.creatorName || 'Set Creator Profile'}
+              </p>
             </div>
-            <div 
-              onClick={() => setIsSettingsOpen(true)}
-              className="w-9 h-9 bg-slate-200 rounded-full border-2 border-white shadow-sm flex items-center justify-center font-bold text-slate-600 text-xs shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
-              title="Creator Security Profile"
+            <button 
+              onClick={() => setIsEditModalOpen(true)}
+              className="w-9 h-9 bg-blue-50 border border-blue-200 rounded-full flex items-center justify-center font-bold text-blue-700 text-xs shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all shadow-2xs"
+              title="Click to edit Creator Profile & KRA PIN"
             >
-              M
-            </div>
+              {profile.creatorName ? profile.creatorName.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
+            </button>
           </div>
         </div>
       </nav>
@@ -272,20 +214,18 @@ export default function Dashboard() {
             <span className="text-lg">🤖</span> AI Compliance
           </button>
 
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-4">Support & Security</div>
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-4">Profile & Help</div>
 
           <button 
-            onClick={() => { setIsSettingsOpen(true); setIsMobileMenuOpen(false); }}
+            onClick={() => { setIsEditModalOpen(true); setIsMobileMenuOpen(false); }}
             className="flex items-center justify-between px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
           >
             <div className="flex items-center gap-3">
-              <BiometricIcon className="w-5 h-5 text-blue-600" />
-              <span>Biometric Vault</span>
+              <User className="w-5 h-5 text-blue-600" />
+              <span>Creator Profile</span>
             </div>
-            <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
-              isUnlocked ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-            }`}>
-              {isUnlocked ? 'Active' : 'Locked'}
+            <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">
+              {profile.kraPin ? 'Configured' : 'Setup'}
             </span>
           </button>
 
@@ -309,18 +249,18 @@ export default function Dashboard() {
 
           <div className="mt-auto p-4 bg-slate-900 rounded-2xl text-white">
             <div className="flex items-center justify-between mb-1">
-              <p className="text-xs text-slate-400">Compliance Score</p>
+              <p className="text-xs text-slate-400">Compliance Readiness</p>
               <div className="flex items-center gap-1">
-                <BiometricIcon className="w-3 h-3 text-emerald-400" />
-                <span className="text-[9px] text-emerald-400 font-bold">Secured</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-[9px] text-emerald-400 font-bold">Compliant</span>
               </div>
             </div>
             <div className="flex items-end justify-between">
-              <span className="text-2xl font-bold">92%</span>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded">High</span>
+              <span className="text-2xl font-bold">100%</span>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded">Active</span>
             </div>
             <div className="w-full bg-slate-700 h-1.5 rounded-full mt-3 overflow-hidden">
-              <div className="bg-blue-400 h-full w-[92%]"></div>
+              <div className="bg-emerald-400 h-full w-full"></div>
             </div>
           </div>
         </aside>
@@ -330,7 +270,7 @@ export default function Dashboard() {
           <div className="max-w-5xl mx-auto space-y-8 pb-12">
             
             {/* Tab Content */}
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="animate-in fade-in slide-from-bottom-4 duration-500">
               {activeTab === 'overview' && (
                 <OverviewDashboard 
                   onNavigateToTaxes={() => setActiveTab('taxes')} 
@@ -359,60 +299,56 @@ export default function Dashboard() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                       <div className="flex items-center justify-between mb-1">
-                        <p className="text-xs font-semibold text-slate-500 uppercase">Pending Withholding Tax</p>
+                        <p className="text-xs font-semibold text-slate-500 uppercase">Withholding Tax Credit</p>
                         <SensitiveShield 
                           inline 
-                          value="KES 42,500" 
+                          value={`KES ${monthlySummary.totalWhtDeductedKes.toLocaleString()}`} 
                           type="currency" 
-                          label="Pending Withholding" 
-                          target="TAX_ESTIMATES" 
+                          label="Withholding Credit" 
                         />
                       </div>
                       <div className="text-xl font-bold font-mono">
                         <SensitiveShield 
-                          value="KES 42,500" 
+                          value={`KES ${monthlySummary.totalWhtDeductedKes.toLocaleString()}`} 
                           type="currency" 
-                          label="Pending WHT" 
-                          target="TAX_ESTIMATES" 
+                          label="WHT Credit" 
                         />
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-2">From Meta & YouTube Royalties</p>
+                      <p className="text-[10px] text-slate-400 mt-2">5% Withholding Tax from logged payouts</p>
                     </div>
                     
                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                       <div className="flex items-center justify-between mb-1">
-                        <p className="text-xs font-semibold text-slate-500 uppercase">Deductible Expenses</p>
+                        <p className="text-xs font-semibold text-slate-500 uppercase">Gross Platform Income</p>
                         <SensitiveShield 
                           inline 
-                          value="KES 18,200" 
+                          value={`KES ${monthlySummary.totalGrossKes.toLocaleString()}`} 
                           type="currency" 
-                          label="Deductible Expenses" 
-                          target="TAX_ESTIMATES" 
+                          label="Gross Income" 
                         />
                       </div>
-                      <div className="text-xl font-bold font-mono">
+                      <div className="text-xl font-bold font-mono text-slate-800">
                         <SensitiveShield 
-                          value="KES 18,200" 
+                          value={`KES ${monthlySummary.totalGrossKes.toLocaleString()}`} 
                           type="currency" 
-                          label="Deductible Expenses" 
-                          target="TAX_ESTIMATES" 
+                          label="Gross Income" 
                         />
                       </div>
-                      <p className="text-[10px] text-emerald-500 font-medium mt-2 flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> All supported by eTIMS
+                      <p className="text-[10px] text-emerald-600 font-medium mt-2 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Reconciled with eTIMS
                       </p>
                     </div>
                     
                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center items-start">
                       <button 
                         onClick={handleDownloadKraReport}
-                        className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2 text-xs shadow-xs"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2 text-xs shadow-sm cursor-pointer"
                       >
-                        <BiometricIcon className="w-4 h-4 text-blue-600" />
-                        Download KRA Report (Biometric)
+                        <Download className="w-4 h-4" />
+                        Download KRA Report
                       </button>
                       <p className="text-[10px] text-slate-400 text-center w-full mt-2">
-                        Requires biometric authentication
+                        Official compliance summary for KRA PIN: {profile.kraPin || 'Pending'}
                       </p>
                     </div>
                   </div>

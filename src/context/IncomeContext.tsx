@@ -37,207 +37,7 @@ const STORAGE_KEY = 'kenyan_creator_income_logs_v1';
 const SYNC_KEY = 'kenyan_creator_synced_tax_inputs_v1';
 const AUTO_SYNC_KEY = 'kenyan_creator_auto_sync_preference_v1';
 
-const INITIAL_SAMPLE_LOGS: CreatorIncomeLog[] = [
-  {
-    id: 'inc-001',
-    month: 10,
-    year: 2026,
-    date: '2026-10-04',
-    category: 'STREAMING_ADSENSE',
-    platformOrBrand: 'YouTube Partner Program (AdSense)',
-    description: 'AdSense monthly monetization for tech review and lifestyle channel (2.4M impressions)',
-    currency: 'USD',
-    originalAmount: 580,
-    exchangeRateKes: 130,
-    grossAmountKes: 75400,
-    withholdingTaxDeductedKes: 0,
-    whtWithheldAtSource: false,
-    netAmountReceivedKes: 75400,
-    paymentMethod: 'BANK_TRANSFER',
-    paymentRef: 'WIRE-GOOG-20261004',
-    status: 'RECEIVED',
-    deliverables: 'Long-form video ads & Shorts Revenue Share'
-  },
-  {
-    id: 'inc-002',
-    month: 10,
-    year: 2026,
-    date: '2026-10-06',
-    category: 'BRAND_DEAL',
-    platformOrBrand: 'Safaricom PLC (Neon 5G Campaign)',
-    description: 'Sponsored video review + 3 Instagram Reels showcasing 5G mobile network coverage in Nairobi & Mombasa',
-    currency: 'KES',
-    originalAmount: 180000,
-    grossAmountKes: 180000,
-    withholdingTaxDeductedKes: 9000, // 5% Kenyan resident WHT under Section 35 ITA
-    whtWithheldAtSource: true,
-    whtCertificateNumber: 'KRA/WHT/2026/094821',
-    netAmountReceivedKes: 171000,
-    etimsInvoiceRef: 'ETIMS-2026-SAF-0089',
-    paymentMethod: 'MPESA',
-    paymentRef: 'SL82K9P2MA',
-    status: 'RECEIVED',
-    deliverables: '1 YouTube integration + 3 IG Reels + 2 TikToks'
-  },
-  {
-    id: 'inc-003',
-    month: 10,
-    year: 2026,
-    date: '2026-10-08',
-    category: 'STREAMING_ADSENSE',
-    platformOrBrand: 'Spotify for Artists & Apple Music',
-    description: 'Digital music and podcast master streaming royalties via DistroKid payout',
-    currency: 'USD',
-    originalAmount: 220,
-    exchangeRateKes: 130,
-    grossAmountKes: 28600,
-    withholdingTaxDeductedKes: 0,
-    whtWithheldAtSource: false,
-    netAmountReceivedKes: 28600,
-    paymentMethod: 'PAYONEER',
-    paymentRef: 'PAYO-DK-9921',
-    status: 'RECEIVED',
-    deliverables: 'East African music catalog (140,000 monthly streams)'
-  },
-  {
-    id: 'inc-004',
-    month: 10,
-    year: 2026,
-    date: '2026-10-12',
-    category: 'BRAND_DEAL',
-    platformOrBrand: 'Equity Bank Kenya (Fintech App Promo)',
-    description: 'Financial literacy series sponsorship explaining diaspora remittance mobile app',
-    currency: 'KES',
-    originalAmount: 110000,
-    grossAmountKes: 110000,
-    withholdingTaxDeductedKes: 5500, // 5% WHT
-    whtWithheldAtSource: true,
-    whtCertificateNumber: 'KRA/WHT/2026/099182',
-    netAmountReceivedKes: 104500,
-    etimsInvoiceRef: 'ETIMS-2026-EQT-0042',
-    paymentMethod: 'BANK_TRANSFER',
-    paymentRef: 'EFT-EQT-882103',
-    status: 'RECEIVED',
-    deliverables: 'Dedicated 8-minute YouTube deep dive + pinned link'
-  },
-  {
-    id: 'inc-005',
-    month: 10,
-    year: 2026,
-    date: '2026-10-15',
-    category: 'DIGITAL_PRODUCTS',
-    platformOrBrand: 'Selar & Gumroad Presets Store',
-    description: 'Nairobi Urban Lightroom mobile & desktop photo editing preset bundle sales',
-    currency: 'KES',
-    originalAmount: 32500,
-    grossAmountKes: 32500,
-    withholdingTaxDeductedKes: 0,
-    whtWithheldAtSource: false,
-    netAmountReceivedKes: 30875, // after 5% gateway commission
-    paymentMethod: 'MPESA',
-    paymentRef: 'SK19L84MNQ',
-    status: 'RECEIVED',
-    deliverables: 'Automated digital downloads (26 creators)'
-  },
-  {
-    id: 'inc-006',
-    month: 10,
-    year: 2026,
-    date: '2026-10-19',
-    category: 'STREAMING_ADSENSE',
-    platformOrBrand: 'TikTok Creator Rewards & LIVE Diamonds',
-    description: 'Creator Rewards program for viral videos (>1 min) and weekend LIVE stream gifts',
-    currency: 'USD',
-    originalAmount: 310,
-    exchangeRateKes: 130,
-    grossAmountKes: 40300,
-    withholdingTaxDeductedKes: 0,
-    whtWithheldAtSource: false,
-    netAmountReceivedKes: 40300,
-    paymentMethod: 'PAYPAL',
-    paymentRef: 'PP-TT-748921',
-    status: 'RECEIVED',
-    deliverables: 'TikTok content creator fund distribution'
-  },
-  {
-    id: 'inc-007',
-    month: 10,
-    year: 2026,
-    date: '2026-10-22',
-    category: 'CREATIVE_SERVICES',
-    platformOrBrand: 'East African Tech Summit 2026',
-    description: 'Keynote panel moderation & live video highlights production at Sarit Expo Centre',
-    currency: 'KES',
-    originalAmount: 60000,
-    grossAmountKes: 60000,
-    withholdingTaxDeductedKes: 3000, // 5% WHT
-    whtWithheldAtSource: true,
-    whtCertificateNumber: 'KRA/WHT/2026/101290',
-    netAmountReceivedKes: 57000,
-    etimsInvoiceRef: 'ETIMS-2026-EATS-0019',
-    paymentMethod: 'BANK_TRANSFER',
-    paymentRef: 'RTGS-TECH-5521',
-    status: 'RECEIVED',
-    deliverables: '1 day MCing + 4K recap reel delivered within 48hrs'
-  },
-  {
-    id: 'inc-008',
-    month: 10,
-    year: 2026,
-    date: '2026-10-27',
-    category: 'ROYALTIES_SKIZA',
-    platformOrBrand: 'Safaricom Skiza Tunes & MCSK Distribution',
-    description: 'Caller ringback tune revenue share and music copyright collective management royalty',
-    currency: 'KES',
-    originalAmount: 16800,
-    grossAmountKes: 16800,
-    withholdingTaxDeductedKes: 840, // 5% WHT
-    whtWithheldAtSource: true,
-    whtCertificateNumber: 'KRA/WHT/2026/103445',
-    netAmountReceivedKes: 15960,
-    paymentMethod: 'MPESA',
-    paymentRef: 'SL9902X8K1',
-    status: 'RECEIVED',
-    deliverables: 'Quarterly CMO mechanical & performance royalty'
-  },
-  // Previous month (September 2026) for trend context
-  {
-    id: 'inc-009',
-    month: 9,
-    year: 2026,
-    date: '2026-09-05',
-    category: 'STREAMING_ADSENSE',
-    platformOrBrand: 'YouTube Partner Program (AdSense)',
-    description: 'AdSense revenue for September 2026',
-    currency: 'USD',
-    originalAmount: 510,
-    exchangeRateKes: 130,
-    grossAmountKes: 66300,
-    withholdingTaxDeductedKes: 0,
-    whtWithheldAtSource: false,
-    netAmountReceivedKes: 66300,
-    paymentMethod: 'BANK_TRANSFER',
-    status: 'RECEIVED'
-  },
-  {
-    id: 'inc-010',
-    month: 9,
-    year: 2026,
-    date: '2026-09-18',
-    category: 'BRAND_DEAL',
-    platformOrBrand: 'Jumia Kenya (Tech Week Influencer)',
-    description: 'Affiliate campaign & product unboxing review videos',
-    currency: 'KES',
-    originalAmount: 140000,
-    grossAmountKes: 140000,
-    withholdingTaxDeductedKes: 7000,
-    whtWithheldAtSource: true,
-    whtCertificateNumber: 'KRA/WHT/2026/087192',
-    netAmountReceivedKes: 133000,
-    paymentMethod: 'BANK_TRANSFER',
-    status: 'RECEIVED'
-  }
-];
+const INITIAL_SAMPLE_LOGS: CreatorIncomeLog[] = [];
 
 const IncomeContext = createContext<IncomeContextType | undefined>(undefined);
 
@@ -247,16 +47,20 @@ export const IncomeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) {
+          // Remove any legacy sample logs
+          const nonSampleLogs = parsed.filter(item => !item.id?.startsWith('inc-00'));
+          return nonSampleLogs;
+        }
       }
     } catch (e) {
       console.warn('Error reading income logs from localStorage', e);
     }
-    return INITIAL_SAMPLE_LOGS;
+    return [];
   });
 
-  const [selectedMonth, setSelectedMonth] = useState<number>(10); // Default to October
-  const [selectedYear, setSelectedYear] = useState<number>(2026);
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   
   const [isAutoSyncEnabled, setIsAutoSyncEnabled] = useState<boolean>(() => {
     try {
@@ -330,7 +134,7 @@ export const IncomeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const resetToSampleData = () => {
-    setIncomeLogs(INITIAL_SAMPLE_LOGS);
+    setIncomeLogs([]);
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(SYNC_KEY);
     setSyncedTaxInputs(null);
@@ -436,7 +240,6 @@ export const IncomeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const hasWht = summary.totalWhtDeductedKes > 0;
 
     // Estimate realistic business expenses if not previously configured
-    // A healthy creator typical deduction is ~20% - 30% of gross
     const estimatedEtimsExpenses = Math.round(summary.totalGrossKes * 0.22);
     const estimatedNonEtimsExpenses = Math.round(summary.totalGrossKes * 0.05);
 

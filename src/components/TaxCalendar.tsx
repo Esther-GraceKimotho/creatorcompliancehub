@@ -25,7 +25,7 @@ import {
   CreatorFilingRecord 
 } from '../types';
 import { exportElementToPdf } from '../utils/pdfGenerator';
-import { useBiometrics } from '../context/BiometricContext';
+import { useProfile } from '../context/ProfileContext';
 
 // Master Statutory KRA Deadlines for Kenyan Content Creators
 const STATUTORY_DEADLINES: KraTaxDeadline[] = [
@@ -211,7 +211,7 @@ export default function TaxCalendar() {
   const [showIcalNotification, setShowIcalNotification] = useState<boolean>(false);
 
   const printScheduleRef = useRef<HTMLDivElement>(null);
-  const { isUnlocked, triggerBiometricAuth, settings } = useBiometrics();
+  const { profile } = useProfile();
 
   // Load filings from localStorage
   useEffect(() => {

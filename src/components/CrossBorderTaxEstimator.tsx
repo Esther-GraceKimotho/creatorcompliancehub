@@ -18,7 +18,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { exportElementToPdf } from '../utils/pdfGenerator';
-import { useBiometrics } from '../context/BiometricContext';
+import { useProfile } from '../context/ProfileContext';
 
 export default function CrossBorderTaxEstimator() {
   const [totalRoyaltiesUsd, setTotalRoyaltiesUsd] = useState<number>(2500);
@@ -28,7 +28,7 @@ export default function CrossBorderTaxEstimator() {
   const [copiedLineId, setCopiedLineId] = useState<string | null>(null);
 
   const guideContainerRef = useRef<HTMLDivElement>(null);
-  const { triggerBiometricAuth } = useBiometrics();
+  const { profile } = useProfile();
 
   // Calculations
   const calculations = useMemo(() => {
@@ -75,7 +75,7 @@ export default function CrossBorderTaxEstimator() {
     {
       line: 'Line 1',
       title: 'Name of Individual',
-      value: 'Maina Kamau',
+      value: profile.creatorName || 'Your Official Legal Name (as per National ID / Passport)',
       hint: 'Must match your Kenyan National ID or Passport exactly as registered on KRA iTax.',
       danger: 'Do NOT use your YouTube channel name or stage handle here.'
     },
@@ -89,7 +89,7 @@ export default function CrossBorderTaxEstimator() {
     {
       line: 'Line 3',
       title: 'Permanent Residence Address',
-      value: 'Argwings Kodhek Rd, Kilimani, Nairobi, 00100, Kenya',
+      value: 'Your Physical Residential Street Address, City, Postal Code, Kenya',
       hint: 'Must be a physical address. If you only provide a P.O. Box, the IRS will reject the form.',
       danger: 'Must include physical house/apartment number and street.'
     },
@@ -103,7 +103,7 @@ export default function CrossBorderTaxEstimator() {
     {
       line: 'Line 6a',
       title: 'Foreign Tax Identifying Number (FTIN)',
-      value: 'P051829471Z (Your KRA PIN)',
+      value: profile.kraPin ? `${profile.kraPin} (Your KRA PIN)` : 'Your 11-Character KRA PIN (e.g. PXXXXXXXXXA)',
       hint: 'THIS IS THE MOST CRITICAL BOX. Enter your 11-character KRA PIN.',
       danger: 'Entering your KRA PIN certifies to Google/Amazon that you are a registered taxpayer outside the US, unlocking 0% withholding on all non-US views!'
     },
@@ -122,13 +122,7 @@ export default function CrossBorderTaxEstimator() {
     setTimeout(() => setCopiedLineId(null), 2000);
   };
 
-  const handleExportGuidePdf = async () => {
-    const authorized = await triggerBiometricAuth({
-      reason: 'Authorize biometric identity to export confidential Cross-Border Tax & W-8BEN Dossier',
-      target: 'PDF_EXPORT'
-    });
-    if (!authorized) return;
-
+  const handleExportGuidePdf = () => {
     if (guideContainerRef.current) {
       exportElementToPdf(guideContainerRef.current, {
         filename: `W8BEN_Tax_Treaty_Guide_${platform}_${Date.now()}.pdf`,

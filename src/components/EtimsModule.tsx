@@ -12,15 +12,15 @@ import {
   ScanFace,
   Fingerprint,
   ShieldCheck,
-  Lock,
-  CalendarDays
+  CalendarDays,
+  Send
 } from 'lucide-react';
 import { exportElementToPdf } from '../utils/pdfGenerator';
 import EtimsTaxEstimator from './EtimsTaxEstimator';
 import TaxCalendar from './TaxCalendar';
 import IncomeLogger from './IncomeLogger';
 import CrossBorderTaxEstimator from './CrossBorderTaxEstimator';
-import { useBiometrics } from '../context/BiometricContext';
+import { useProfile } from '../context/ProfileContext';
 import SensitiveShield from './SensitiveShield';
 import { Globe2 } from 'lucide-react';
 
@@ -36,16 +36,22 @@ export default function EtimsModule({ initialTab = 'income' }: EtimsModuleProps)
   const [isDownloading, setIsDownloading] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
 
-  const { settings, triggerBiometricAuth, isUnlocked } = useBiometrics();
-  const BiometricIcon = settings.primaryBiometric === 'fingerprint' ? Fingerprint : ScanFace;
+  const { profile } = useProfile();
 
   const [formData, setFormData] = useState({
-    sellerPin: 'P051829471Z',
+    sellerPin: profile.kraPin || '',
     buyerPin: '',
     amount: '',
     description: '',
     type: 'SERVICES'
   });
+
+  // Sync with profile if updated
+  useEffect(() => {
+    if (profile.kraPin && !formData.sellerPin) {
+      setFormData(prev => ({ ...prev, sellerPin: profile.kraPin }));
+    }
+  }, [profile.kraPin]);
 
   const handleDownloadReceipt = async () => {
     if (!receiptRef.current || !invoice) return;
@@ -65,14 +71,6 @@ export default function EtimsModule({ initialTab = 'income' }: EtimsModuleProps)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (settings.isEnabled && settings.requireAuthForEtimsTransmission) {
-      const authorized = await triggerBiometricAuth({
-        reason: `Authorize biometric signature (${settings.primaryBiometric === 'fingerprint' ? 'Fingerprint' : 'FaceID'}) to electronically sign & transmit KES ${formData.amount || '0'} invoice to KRA eTIMS`,
-        target: 'KRA'
-      });
-      if (!authorized) return;
-    }
 
     setLoading(true);
     setError(null);
@@ -315,8 +313,8 @@ export default function EtimsModule({ initialTab = 'income' }: EtimsModuleProps)
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>
-                      <BiometricIcon className="w-4 h-4" />
-                      Sign & Transmit to KRA (Biometric)
+                      <Send className="w-4 h-4" />
+                      Sign & Transmit to KRA (eTIMS VSCU)
                     </>
                   )}
                 </button>

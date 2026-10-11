@@ -12,9 +12,10 @@ import {
   Download,
   ListChecks,
   PlusCircle,
-  FolderLock
+  FolderLock,
+  Send
 } from 'lucide-react';
-import { useBiometrics } from '../context/BiometricContext';
+import { useProfile } from '../context/ProfileContext';
 import SensitiveShield from './SensitiveShield';
 import KecoboChecklist from './KecoboChecklist';
 import CreativeWorksCatalog from './CreativeWorksCatalog';
@@ -26,15 +27,24 @@ export default function IpRegistrationModule() {
   const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
-  const { settings, triggerBiometricAuth, isUnlocked } = useBiometrics();
-  const BiometricIcon = settings.primaryBiometric === 'fingerprint' ? Fingerprint : ScanFace;
+  const { profile } = useProfile();
 
   const [formData, setFormData] = useState({
     title: '',
     type: 'AUDIOVISUAL',
-    creatorName: 'Maina Kamau',
-    idNumber: '29384722'
+    creatorName: profile.creatorName || '',
+    idNumber: profile.nationalId || ''
   });
+
+  // Sync if profile updates
+  useEffect(() => {
+    if (profile.creatorName && !formData.creatorName) {
+      setFormData(prev => ({ ...prev, creatorName: profile.creatorName }));
+    }
+    if (profile.nationalId && !formData.idNumber) {
+      setFormData(prev => ({ ...prev, idNumber: profile.nationalId }));
+    }
+  }, [profile.creatorName, profile.nationalId]);
 
   const handleLodgeFromCatalog = (work: CatalogedWork) => {
     setFormData({
@@ -45,16 +55,12 @@ export default function IpRegistrationModule() {
     setActiveTab('register');
   };
 
-  const handleDownloadCertificate = async (nrrRef: string, title: string) => {
-    const authorized = await triggerBiometricAuth({
-      reason: `Authorize FaceID / Fingerprint to decrypt and download KECOBO Copyright Certificate for "${title}" (${nrrRef})`,
-      target: 'KECOBO'
-    });
-    if (!authorized) return;
-
+  const handleDownloadCertificate = (nrrRef: string, title: string) => {
+    const ownerName = formData.creatorName || profile.creatorName || 'Creative Author';
+    const nationalId = formData.idNumber || profile.nationalId || 'N/A';
     // Simulate official certificate download
     const blob = new Blob([
-      `KENYA COPYRIGHT BOARD (KECOBO)\nNATIONAL RIGHTS REGISTRY (NRR)\nCertificate of Copyright Registration\n\nNRR Reference: ${nrrRef}\nTitle of Work: ${title}\nOwner: Maina Kamau\nNational ID: 29384722\nDate: 2026-03-14\nStatus: Officially Registered under Copyright Act 2021/2026\nDigital Signature: VERIFIED_FIDO2_SECURE_ENCLAVE`
+      `KENYA COPYRIGHT BOARD (KECOBO)\nNATIONAL RIGHTS REGISTRY (NRR)\nCertificate of Copyright Registration\n\nNRR Reference: ${nrrRef}\nTitle of Work: ${title}\nOwner: ${ownerName}\nNational ID: ${nationalId}\nDate: ${new Date().toISOString().slice(0, 10)}\nStatus: Officially Registered under Copyright Act 2021/2026\nDigital Signature: VERIFIED_NRR_PORTAL_SIGNATURE`
     ], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -69,14 +75,6 @@ export default function IpRegistrationModule() {
     if (!file) {
       setError("Please attach a file as proof of work.");
       return;
-    }
-
-    if (settings.isEnabled && settings.requireAuthForIpSubmission) {
-      const authorized = await triggerBiometricAuth({
-        reason: `Authorize biometric identity verification (${settings.primaryBiometric === 'fingerprint' ? 'Fingerprint' : 'FaceID'}) to lodge copyright registration for "${formData.title}" under National ID ${formData.idNumber} with KECOBO NRR`,
-        target: 'KECOBO'
-      });
-      if (!authorized) return;
     }
 
     setLoading(true);
@@ -257,8 +255,8 @@ export default function IpRegistrationModule() {
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <>
-                        <BiometricIcon className="w-4 h-4" />
-                        Submit to NRR (Biometric Sign)
+                        <Send className="w-4 h-4" />
+                        Submit to NRR (KECOBO Portal)
                       </>
                     )}
                   </button>
@@ -309,18 +307,26 @@ export default function IpRegistrationModule() {
               <h3 className="font-bold text-slate-800">Recent Applications Tracker</h3>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left min-w-[600px]">
-                <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-400">
-                  <tr>
-                    <th className="px-6 py-3">Reference (NRR)</th>
-                    <th className="px-6 py-3">Work Title</th>
-                    <th className="px-6 py-3">Date Submitted</th>
-                    <th className="px-6 py-3">Status</th>
-                    <th className="px-6 py-3">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm divide-y divide-slate-100">
-                  {result && (
+              {!result ? (
+                <div className="p-8 text-center text-slate-400 space-y-2">
+                  <FileCheck className="w-8 h-8 mx-auto text-slate-300" />
+                  <p className="text-xs font-semibold text-slate-600">No pending submissions</p>
+                  <p className="text-[11px] text-slate-400">
+                    Submit your creative work above to receive an instant National Rights Registry (NRR) tracking reference.
+                  </p>
+                </div>
+              ) : (
+                <table className="w-full text-left min-w-[600px]">
+                  <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-400">
+                    <tr>
+                      <th className="px-6 py-3">Reference (NRR)</th>
+                      <th className="px-6 py-3">Work Title</th>
+                      <th className="px-6 py-3">Date Submitted</th>
+                      <th className="px-6 py-3">Status</th>
+                      <th className="px-6 py-3">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm divide-y divide-slate-100">
                     <tr className="hover:bg-slate-50/50 bg-blue-50/20">
                       <td className="px-6 py-4 font-mono font-medium text-slate-900">{result.nrrNumber}</td>
                       <td className="px-6 py-4 font-medium">{result.title}</td>
@@ -332,43 +338,9 @@ export default function IpRegistrationModule() {
                         <button className="text-blue-600 font-semibold text-xs hover:underline">Pay KES 1000</button>
                       </td>
                     </tr>
-                  )}
-                  <tr className="hover:bg-slate-50/50">
-                    <td className="px-6 py-4 font-mono font-medium text-slate-900">NRR-2026-08142</td>
-                    <td className="px-6 py-4 font-medium">The Nairobi Vibe S1</td>
-                    <td className="px-6 py-4 text-slate-500">14 Mar 2026</td>
-                    <td className="px-6 py-4">
-                      <span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-md text-xs font-bold uppercase">Approved</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button 
-                        onClick={() => handleDownloadCertificate('NRR-2026-08142', 'The Nairobi Vibe S1')}
-                        className="text-blue-600 font-bold text-xs hover:underline flex items-center gap-1"
-                      >
-                        <BiometricIcon className="w-3 h-3" />
-                        Download Cert
-                      </button>
-                    </td>
-                  </tr>
-                  <tr className="hover:bg-slate-50/50">
-                    <td className="px-6 py-4 font-mono font-medium text-slate-900">NRR-2026-05291</td>
-                    <td className="px-6 py-4 font-medium">My Journey Vlog Script</td>
-                    <td className="px-6 py-4 text-slate-500">22 Feb 2026</td>
-                    <td className="px-6 py-4">
-                      <span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-md text-xs font-bold uppercase">Approved</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button 
-                        onClick={() => handleDownloadCertificate('NRR-2026-05291', 'My Journey Vlog Script')}
-                        className="text-blue-600 font-bold text-xs hover:underline flex items-center gap-1"
-                      >
-                        <BiometricIcon className="w-3 h-3" />
-                        Download Cert
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>
