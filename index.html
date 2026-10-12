@@ -2,20 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#1e3a8a" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CreatorComp" />
+    
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
-    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    
     <title>CreatorCompliance Kenya</title>
-    <meta name="description" content="Mobile-first legal-tech and fintech solution for Kenyan digital content creators to manage 2026 tax obligations (eTIMS) and protect intellectual property." />
+    <meta name="description" content="Mobile-first tax compliance, eTIMS invoicing, and KECOBO IP protection app for Kenyan digital content creators." />
     <meta property="og:title" content="CreatorCompliance Kenya" />
-    <meta property="og:description" content="Mobile-first legal-tech and fintech solution for Kenyan digital content creators to manage 2026 tax obligations (eTIMS) and protect intellectual property." />
+    <meta property="og:description" content="Mobile-first tax compliance, eTIMS invoicing, and KECOBO IP protection app for Kenyan digital content creators." />
+    <meta property="og:image" content="/pwa-512x512.png" />
   </head>
-  <body>
+  <body class="bg-slate-900 selection:bg-blue-600 selection:text-white overscroll-none">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

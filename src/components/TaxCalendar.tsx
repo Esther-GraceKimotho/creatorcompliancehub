@@ -437,14 +437,6 @@ export default function TaxCalendar() {
   const handleDownloadPdf = async () => {
     if (!printScheduleRef.current) return;
 
-    if (settings.isEnabled && settings.requireAuthForPdfExport) {
-      const authorized = await triggerBiometricAuth({
-        reason: 'Authorize biometric scan to export confidential KRA Tax Calendar filing audit',
-        target: 'PDF_EXPORT'
-      });
-      if (!authorized) return;
-    }
-
     setIsExporting(true);
     try {
       await exportElementToPdf(printScheduleRef.current, {
@@ -1074,7 +1066,7 @@ export default function TaxCalendar() {
             <div>
               <h1 className="text-2xl font-black">KENYA CREATOR TAX COMPLIANCE SCHEDULE</h1>
               <p className="text-xs text-slate-600 mt-1">
-                Month: {MONTH_NAMES[selectedMonth]} {selectedYear} · KRA PIN: P051829471Z · Taxpayer: Maina Kamau
+                Month: {MONTH_NAMES[selectedMonth]} {selectedYear} · KRA PIN: {profile.kraPin || 'Pending'} · Taxpayer: {profile.creatorName || 'Kenyan Content Creator'}
               </p>
             </div>
             <div className="text-right text-xs">

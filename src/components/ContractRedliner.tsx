@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   ContractRedlineReport, 
   ContractRedlineClause, 
@@ -187,13 +187,7 @@ export default function ContractRedliner() {
     setTimeout(() => setCopiedClauseId(null), 2500);
   };
 
-  const handleExportRedlinePdf = async () => {
-    const authorized = await triggerBiometricAuth({
-      reason: 'Authorize biometric identity to export confidential Legal Contract Redline Audit',
-      target: 'PDF_EXPORT'
-    });
-    if (!authorized) return;
-
+  const handleExportRedlinePdf = () => {
     if (reportContainerRef.current) {
       exportElementToPdf(reportContainerRef.current, {
         filename: `Legal_Redline_Report_${contractTitle.replace(/\s+/g, '_')}_${Date.now()}.pdf`,

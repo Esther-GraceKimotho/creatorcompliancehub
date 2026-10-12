@@ -260,7 +260,7 @@ export default function OverviewDashboard({
               </div>
               <p className="text-sm font-semibold text-slate-700">No income records logged yet</p>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Track payments from YouTube, Spotify, Selar, or brand deals in the Income Logger to automatically calculate 5% WHT credits and eTIMS taxes.
+                Log your creator revenue and brand partnerships in the Income Logger to automatically compute 5% WHT credits and reconcile deductible expenses.
               </p>
               {onNavigateToIncome && (
                 <button
@@ -360,7 +360,11 @@ export default function OverviewDashboard({
               </span>
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed mb-3">
-              KES {monthlySummary.totalGrossKes.toLocaleString()} logged for {new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })} across {monthlySummary.entryCount} sources (KES {monthlySummary.totalWhtDeductedKes.toLocaleString()} in 5% WHT credits).
+              {monthlySummary.entryCount > 0 ? (
+                `KES ${monthlySummary.totalGrossKes.toLocaleString()} logged for ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })} across ${monthlySummary.entryCount} sources (KES ${monthlySummary.totalWhtDeductedKes.toLocaleString()} in 5% WHT credits).`
+              ) : (
+                `No revenue entries recorded yet for ${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' })}. Log your platform payouts and brand sponsorships to track withholding tax credits.`
+              )}
             </p>
             <button 
               onClick={onNavigateToIncome}

@@ -10,6 +10,8 @@ import TaxCalendar from './TaxCalendar';
 import IncomeLogger from './IncomeLogger';
 import ContractRedliner from './ContractRedliner';
 import CrossBorderTaxEstimator from './CrossBorderTaxEstimator';
+import { PWAInstallButton } from './PWAInstallButton';
+import { OfflineIndicator } from './OfflineIndicator';
 import { useProfile } from '../context/ProfileContext';
 import { useIncome } from '../context/IncomeContext';
 import { 
@@ -22,7 +24,17 @@ import {
   ShieldCheck, 
   CalendarDays,
   Download,
-  Building2
+  Building2,
+  LayoutDashboard,
+  Wallet,
+  Receipt,
+  Shield,
+  Layers,
+  FileSpreadsheet,
+  Globe2,
+  Bot,
+  HelpCircle,
+  Smartphone
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -47,47 +59,65 @@ export default function Dashboard() {
   };
   
   return (
-    <div className="h-screen w-full bg-slate-50 flex flex-col font-sans overflow-hidden text-slate-900">
-      {/* Header */}
-      <nav className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0 relative z-50">
-        <div className="flex items-center gap-3">
+    <div className="h-screen w-full bg-slate-50 flex flex-col font-sans overflow-hidden text-slate-900 select-none md:select-auto">
+      {/* Offline Toast */}
+      <OfflineIndicator />
+
+      {/* Top App Header */}
+      <nav className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-3 md:px-8 shrink-0 relative z-40 pt-[env(safe-area-inset-top,0px)]">
+        <div className="flex items-center gap-2.5">
           <button 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+            aria-label="Open App Navigation Menu"
           >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            <Menu className="w-5 h-5" />
           </button>
-          <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center shrink-0">
-            <div className="w-4 h-4 border-2 border-white rounded-sm"></div>
+          
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-900 via-blue-700 to-indigo-600 flex items-center justify-center shadow-sm shrink-0 border border-blue-800/40">
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <h1 className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 leading-none">
+                CreatorCompliance <span className="text-blue-600 font-black">Kenya</span>
+              </h1>
+              <p className="text-[10px] text-slate-400 font-medium hidden sm:block mt-0.5">
+                eTIMS &bull; Copyright IP &bull; Digital Tax App
+              </p>
+            </div>
           </div>
-          <h1 className="text-lg md:text-xl font-bold tracking-tight text-blue-900 truncate hidden sm:block">
-            CreatorCompliance <span className="text-blue-500">Kenya</span>
-          </h1>
         </div>
 
         {/* Header Right Actions */}
-        <div className="flex items-center gap-3 md:gap-5">
-          <div className="hidden sm:flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* PWA Install Button */}
+          <PWAInstallButton variant="compact" />
+
+          {/* eTIMS Status Badge */}
+          <div className="hidden lg:flex items-center gap-2 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-            <span className="text-xs font-semibold text-emerald-700">eTIMS Live</span>
+            <span className="text-[11px] font-semibold text-emerald-700">eTIMS Live</span>
           </div>
 
-          <div className="flex items-center gap-3 sm:border-l sm:pl-4 border-slate-200">
+          {/* User Profile Trigger */}
+          <div className="flex items-center gap-2.5 sm:border-l sm:pl-3.5 border-slate-200">
             <div className="text-right hidden sm:block">
               <div className="flex items-center justify-end gap-1">
-                <span className="text-[10px] font-medium text-slate-400 uppercase">PIN:</span>
+                <span className="text-[10px] font-semibold text-slate-400 uppercase">PIN:</span>
                 <span className="text-xs font-mono font-bold text-slate-700">
                   {profile.kraPin || 'Not set'}
                 </span>
               </div>
-              <p className="text-xs font-bold text-slate-800">
-                {profile.creatorName || 'Set Creator Profile'}
+              <p className="text-xs font-bold text-slate-800 truncate max-w-[120px]">
+                {profile.creatorName || 'Set Profile'}
               </p>
             </div>
+            
             <button 
               onClick={() => setIsEditModalOpen(true)}
-              className="w-9 h-9 bg-blue-50 border border-blue-200 rounded-full flex items-center justify-center font-bold text-blue-700 text-xs shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all shadow-2xs"
-              title="Click to edit Creator Profile & KRA PIN"
+              className="w-9 h-9 bg-blue-50 border border-blue-200 hover:border-blue-400 rounded-full flex items-center justify-center font-bold text-blue-700 text-xs shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all shadow-2xs"
+              title="Click to view/edit Creator Profile & KRA Credentials"
             >
               {profile.creatorName ? profile.creatorName.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
             </button>
@@ -95,182 +125,327 @@ export default function Dashboard() {
         </div>
       </nav>
 
+      {/* Main Workspace */}
       <main className="flex-1 flex overflow-hidden relative">
-        {/* Mobile Overlay */}
+        {/* Mobile Full Navigation Drawer / Bottom Sheet */}
         {isMobileMenuOpen && (
           <div 
-            className="fixed inset-0 bg-slate-900/50 z-40 md:hidden" 
+            className="fixed inset-0 bg-slate-900/60 z-50 md:hidden backdrop-blur-xs flex flex-col justify-end animate-in fade-in"
             onClick={() => setIsMobileMenuOpen(false)}
-          />
+          >
+            <div 
+              className="bg-white rounded-t-3xl max-h-[85vh] overflow-y-auto p-5 space-y-4 shadow-2xl animate-in slide-in-from-bottom-5"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-700 text-white flex items-center justify-center font-bold text-sm">
+                    🇰🇪
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-base">App Navigation</h3>
+                    <p className="text-xs text-slate-500">All tools & statutory services</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Install Banner on Mobile Menu */}
+              <PWAInstallButton variant="banner" />
+
+              <div className="grid grid-cols-2 gap-2.5 pt-2">
+                <button
+                  onClick={() => { setActiveTab('overview'); setIsMobileMenuOpen(false); }}
+                  className={`p-3 rounded-2xl flex flex-col items-start gap-1 text-left transition-all ${
+                    activeTab === 'overview' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <LayoutDashboard className="w-5 h-5" />
+                  <span className="text-xs font-bold mt-1">Dashboard</span>
+                  <span className={`text-[10px] ${activeTab === 'overview' ? 'text-blue-100' : 'text-slate-400'}`}>Overview</span>
+                </button>
+
+                <button
+                  onClick={() => { setActiveTab('income'); setIsMobileMenuOpen(false); }}
+                  className={`p-3 rounded-2xl flex flex-col items-start gap-1 text-left transition-all ${
+                    activeTab === 'income' ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <Wallet className="w-5 h-5" />
+                  <span className="text-xs font-bold mt-1">Income Logger</span>
+                  <span className={`text-[10px] ${activeTab === 'income' ? 'text-emerald-100' : 'text-slate-400'}`}>Deals & 5% WHT</span>
+                </button>
+
+                <button
+                  onClick={() => { setActiveTab('taxes'); setIsMobileMenuOpen(false); }}
+                  className={`p-3 rounded-2xl flex flex-col items-start gap-1 text-left transition-all ${
+                    activeTab === 'taxes' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <Receipt className="w-5 h-5" />
+                  <span className="text-xs font-bold mt-1">Tax & eTIMS</span>
+                  <span className={`text-[10px] ${activeTab === 'taxes' ? 'text-blue-100' : 'text-slate-400'}`}>Estimator & Invoices</span>
+                </button>
+
+                <button
+                  onClick={() => { setActiveTab('ip'); setIsMobileMenuOpen(false); }}
+                  className={`p-3 rounded-2xl flex flex-col items-start gap-1 text-left transition-all ${
+                    activeTab === 'ip' ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <Shield className="w-5 h-5" />
+                  <span className="text-xs font-bold mt-1">KECOBO IP</span>
+                  <span className={`text-[10px] ${activeTab === 'ip' ? 'text-indigo-100' : 'text-slate-400'}`}>Vault & NRR</span>
+                </button>
+
+                <button
+                  onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }}
+                  className={`p-3 rounded-2xl flex flex-col items-start gap-1 text-left transition-all ${
+                    activeTab === 'calendar' ? 'bg-amber-600 text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <CalendarDays className="w-5 h-5" />
+                  <span className="text-xs font-bold mt-1">Tax Calendar</span>
+                  <span className={`text-[10px] ${activeTab === 'calendar' ? 'text-amber-100' : 'text-slate-400'}`}>20th Deadlines</span>
+                </button>
+
+                <button
+                  onClick={() => { setActiveTab('redline'); setIsMobileMenuOpen(false); }}
+                  className={`p-3 rounded-2xl flex flex-col items-start gap-1 text-left transition-all ${
+                    activeTab === 'redline' ? 'bg-rose-600 text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <FileSpreadsheet className="w-5 h-5" />
+                  <span className="text-xs font-bold mt-1">Contract Redliner</span>
+                  <span className={`text-[10px] ${activeTab === 'redline' ? 'text-rose-100' : 'text-slate-400'}`}>Brand Deals</span>
+                </button>
+
+                <button
+                  onClick={() => { setActiveTab('crossborder'); setIsMobileMenuOpen(false); }}
+                  className={`p-3 rounded-2xl flex flex-col items-start gap-1 text-left transition-all ${
+                    activeTab === 'crossborder' ? 'bg-sky-600 text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <Globe2 className="w-5 h-5" />
+                  <span className="text-xs font-bold mt-1">Cross-Border</span>
+                  <span className={`text-[10px] ${activeTab === 'crossborder' ? 'text-sky-100' : 'text-slate-400'}`}>W-8BEN Guide</span>
+                </button>
+
+                <button
+                  onClick={() => { setActiveTab('ai'); setIsMobileMenuOpen(false); }}
+                  className={`p-3 rounded-2xl flex flex-col items-start gap-1 text-left transition-all ${
+                    activeTab === 'ai' ? 'bg-purple-600 text-white font-bold' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <Bot className="w-5 h-5" />
+                  <span className="text-xs font-bold mt-1">AI Compliance</span>
+                  <span className={`text-[10px] ${activeTab === 'ai' ? 'text-purple-100' : 'text-slate-400'}`}>AI Bill 2026</span>
+                </button>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                <button
+                  onClick={() => { setActiveTab('kb'); setIsMobileMenuOpen(false); }}
+                  className="flex items-center gap-1.5 text-slate-600 font-bold hover:text-blue-600"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  <span>Knowledge Base</span>
+                </button>
+
+                <button
+                  onClick={() => { setIsEditModalOpen(true); setIsMobileMenuOpen(false); }}
+                  className="flex items-center gap-1.5 text-blue-600 font-bold hover:text-blue-700"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Edit Profile</span>
+                </button>
+              </div>
+            </div>
+          </div>
         )}
         
-        {/* Sidebar */}
-        <aside className={`absolute md:relative z-50 w-64 h-full bg-white border-r border-slate-200 p-6 flex flex-col gap-2 shrink-0 overflow-y-auto transition-transform duration-300 ${
-          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}>
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Modules</div>
+        {/* Desktop Sidebar */}
+        <aside className="hidden md:flex w-64 h-full bg-white border-r border-slate-200 p-5 flex-col gap-1.5 shrink-0 overflow-y-auto">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 px-3">
+            App Modules
+          </div>
           
           <button 
-            onClick={() => { setActiveTab('overview'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'overview' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'
+            onClick={() => setActiveTab('overview')}
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+              activeTab === 'overview' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
-            <span className="text-lg">📊</span> Dashboard
+            <LayoutDashboard className="w-4 h-4" />
+            <span>Dashboard</span>
           </button>
           
           <button 
-            onClick={() => { setActiveTab('income'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'income' ? 'bg-emerald-50 text-emerald-800' : 'text-slate-600 hover:bg-slate-50'
+            onClick={() => setActiveTab('income')}
+            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+              activeTab === 'income' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             <div className="flex items-center gap-3">
-              <span className="text-lg">💰</span>
+              <Wallet className="w-4 h-4" />
               <span>Income Logger</span>
             </div>
-            <span className="text-[9px] font-extrabold uppercase bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-mono">
-              Streams & Deals
+            <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
+              activeTab === 'income' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
+            }`}>
+              Deals
             </span>
           </button>
 
           <button 
-            onClick={() => { setActiveTab('taxes'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'taxes' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'
+            onClick={() => setActiveTab('taxes')}
+            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+              activeTab === 'taxes' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             <div className="flex items-center gap-3">
-              <span className="text-lg">🧾</span> Tax & eTIMS
+              <Receipt className="w-4 h-4" />
+              <span>Tax & eTIMS</span>
             </div>
-            <span className="text-[9px] font-extrabold uppercase bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
-              Estimator
+            <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
+              activeTab === 'taxes' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800'
+            }`}>
+              2026
             </span>
           </button>
 
           <button 
-            onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'calendar' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'
+            onClick={() => setActiveTab('calendar')}
+            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+              activeTab === 'calendar' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             <div className="flex items-center gap-3">
-              <CalendarDays className="w-5 h-5 text-amber-500" />
+              <CalendarDays className="w-4 h-4" />
               <span>Tax Calendar</span>
             </div>
-            <span className="text-[9px] font-extrabold uppercase bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-mono">
-              20th VAT
+            <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded font-mono ${
+              activeTab === 'calendar' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'
+            }`}>
+              20th
             </span>
           </button>
           
           <button 
-            onClick={() => { setActiveTab('ip'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'ip' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'
+            onClick={() => setActiveTab('ip')}
+            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+              activeTab === 'ip' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             <div className="flex items-center gap-3">
-              <span className="text-lg">🛡️</span> KECOBO IP
+              <Shield className="w-4 h-4" />
+              <span>KECOBO IP</span>
             </div>
-            <span className="text-[9px] font-extrabold uppercase bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded">
-              Vault & NRR
+            <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
+              activeTab === 'ip' ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-800'
+            }`}>
+              NRR
             </span>
           </button>
 
           <button 
-            onClick={() => { setActiveTab('redline'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'redline' ? 'bg-rose-50 text-rose-700' : 'text-slate-600 hover:bg-slate-50'
+            onClick={() => setActiveTab('redline')}
+            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+              activeTab === 'redline' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             <div className="flex items-center gap-3">
-              <span className="text-lg">⚖️</span> Redliner
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Contract Redliner</span>
             </div>
-            <span className="text-[9px] font-extrabold uppercase bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded font-mono">
-              Brand Deals
+            <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
+              activeTab === 'redline' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800'
+            }`}>
+              AI Shield
             </span>
           </button>
 
           <button 
-            onClick={() => { setActiveTab('crossborder'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center justify-between px-4 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'crossborder' ? 'bg-sky-50 text-sky-700' : 'text-slate-600 hover:bg-slate-50'
+            onClick={() => setActiveTab('crossborder')}
+            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+              activeTab === 'crossborder' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             <div className="flex items-center gap-3">
-              <span className="text-lg">🌐</span> Cross-Border
+              <Globe2 className="w-4 h-4" />
+              <span>Cross-Border</span>
             </div>
-            <span className="text-[9px] font-extrabold uppercase bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-mono">
+            <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
+              activeTab === 'crossborder' ? 'bg-white/20 text-white' : 'bg-sky-100 text-sky-800'
+            }`}>
               W-8BEN
             </span>
           </button>
           
           <button 
-            onClick={() => { setActiveTab('ai'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'ai' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'
+            onClick={() => setActiveTab('ai')}
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+              activeTab === 'ai' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
-            <span className="text-lg">🤖</span> AI Compliance
+            <Bot className="w-4 h-4" />
+            <span>AI Compliance</span>
           </button>
 
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-4">Profile & Help</div>
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 mt-3 px-3">
+            Account & Support
+          </div>
 
           <button 
-            onClick={() => { setIsEditModalOpen(true); setIsMobileMenuOpen(false); }}
-            className="flex items-center justify-between px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+            onClick={() => setIsEditModalOpen(true)}
+            className="flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <User className="w-5 h-5 text-blue-600" />
+              <User className="w-4 h-4 text-blue-600" />
               <span>Creator Profile</span>
             </div>
             <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">
-              {profile.kraPin ? 'Configured' : 'Setup'}
+              {profile.kraPin ? 'Ready' : 'Setup'}
             </span>
           </button>
 
           <button 
-            onClick={() => { setActiveTab('kb'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'kb' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'
+            onClick={() => setActiveTab('kb')}
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+              activeTab === 'kb' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
-            <BookOpen className="w-5 h-5" /> Knowledge Base
+            <BookOpen className="w-4 h-4" />
+            <span>Knowledge Base</span>
           </button>
 
           <button 
-            onClick={() => { setActiveTab('setup'); setIsMobileMenuOpen(false); }}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-colors ${
-              activeTab === 'setup' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'
+            onClick={() => setActiveTab('setup')}
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+              activeTab === 'setup' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
-            <Settings className="w-5 h-5" /> Onboarding Setup
+            <Settings className="w-4 h-4" />
+            <span>Onboarding Setup</span>
           </button>
 
-          <div className="mt-auto p-4 bg-slate-900 rounded-2xl text-white">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-xs text-slate-400">Compliance Readiness</p>
-              <div className="flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-[9px] text-emerald-400 font-bold">Compliant</span>
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <span className="text-2xl font-bold">100%</span>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded">Active</span>
-            </div>
-            <div className="w-full bg-slate-700 h-1.5 rounded-full mt-3 overflow-hidden">
-              <div className="bg-emerald-400 h-full w-full"></div>
-            </div>
+          {/* Desktop Install App Banner */}
+          <div className="mt-auto pt-3">
+            <PWAInstallButton variant="banner" />
           </div>
         </aside>
 
-        {/* Main Content Area */}
-        <div className="flex-1 p-4 md:p-8 overflow-y-auto">
-          <div className="max-w-5xl mx-auto space-y-8 pb-12">
+        {/* Scrollable Main Viewport */}
+        <div className="flex-1 p-3.5 sm:p-6 md:p-8 overflow-y-auto pb-24 md:pb-12 overscroll-y-contain">
+          <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
             
-            {/* Tab Content */}
-            <div className="animate-in fade-in slide-from-bottom-4 duration-500">
+            {/* Tab Views */}
+            <div className="animate-in fade-in slide-from-bottom-3 duration-300">
               {activeTab === 'overview' && (
                 <OverviewDashboard 
                   onNavigateToTaxes={() => setActiveTab('taxes')} 
@@ -384,6 +559,60 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation App Bar (Thumb-Accessible) */}
+      <nav 
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1.5 flex items-center justify-around shadow-lg pb-[max(env(safe-area-inset-bottom,0px),8px)]"
+        aria-label="Mobile Navigation"
+      >
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'overview' ? 'text-blue-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <LayoutDashboard className={`w-5 h-5 ${activeTab === 'overview' ? 'stroke-[2.5]' : ''}`} />
+          <span className="text-[10px] mt-0.5">Overview</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('income')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'income' ? 'text-emerald-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Wallet className={`w-5 h-5 ${activeTab === 'income' ? 'stroke-[2.5]' : ''}`} />
+          <span className="text-[10px] mt-0.5">Income</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('taxes')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'taxes' ? 'text-blue-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Receipt className={`w-5 h-5 ${activeTab === 'taxes' ? 'stroke-[2.5]' : ''}`} />
+          <span className="text-[10px] mt-0.5">Taxes</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('ip')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'ip' ? 'text-indigo-600 font-extrabold' : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Shield className={`w-5 h-5 ${activeTab === 'ip' ? 'stroke-[2.5]' : ''}`} />
+          <span className="text-[10px] mt-0.5">IP Vault</span>
+        </button>
+
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="flex flex-col items-center justify-center py-1 px-3 rounded-xl text-slate-500 hover:text-slate-800 transition-all cursor-pointer"
+        >
+          <Layers className="w-5 h-5" />
+          <span className="text-[10px] mt-0.5">More</span>
+        </button>
+      </nav>
     </div>
   );
 }

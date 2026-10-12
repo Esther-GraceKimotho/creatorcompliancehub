@@ -1,14 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IpRegistration, CatalogedWork } from '../types';
 import { 
   Shield, 
   Upload, 
   FileCheck, 
   AlertCircle, 
-  ScanFace, 
-  Fingerprint, 
-  Lock, 
-  Unlock, 
   Download,
   ListChecks,
   PlusCircle,

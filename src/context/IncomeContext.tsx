@@ -33,8 +33,8 @@ interface IncomeContextType {
   setIsAutoSyncEnabled: (enabled: boolean) => void;
 }
 
-const STORAGE_KEY = 'kenyan_creator_income_logs_v1';
-const SYNC_KEY = 'kenyan_creator_synced_tax_inputs_v1';
+const STORAGE_KEY = 'kenyan_creator_income_logs_clean_v1';
+const SYNC_KEY = 'kenyan_creator_synced_tax_inputs_clean_v1';
 const AUTO_SYNC_KEY = 'kenyan_creator_auto_sync_preference_v1';
 
 const INITIAL_SAMPLE_LOGS: CreatorIncomeLog[] = [];
@@ -44,13 +44,15 @@ const IncomeContext = createContext<IncomeContextType | undefined>(undefined);
 export const IncomeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [incomeLogs, setIncomeLogs] = useState<CreatorIncomeLog[]>(() => {
     try {
+      // Purge legacy storage that contained demo/placeholder income records
+      localStorage.removeItem('kenyan_creator_income_logs_v1');
+      localStorage.removeItem('kenyan_creator_synced_tax_inputs_v1');
+
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          // Remove any legacy sample logs
-          const nonSampleLogs = parsed.filter(item => !item.id?.startsWith('inc-00'));
-          return nonSampleLogs;
+          return parsed;
         }
       }
     } catch (e) {

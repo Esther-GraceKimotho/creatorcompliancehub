@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { EtimsInvoice } from '../types';
 import { 
   FileText, 
@@ -9,11 +9,7 @@ import {
   Download, 
   Calculator, 
   Receipt,
-  ScanFace,
-  Fingerprint,
-  ShieldCheck,
-  CalendarDays,
-  Send
+  CalendarDays
 } from 'lucide-react';
 import { exportElementToPdf } from '../utils/pdfGenerator';
 import EtimsTaxEstimator from './EtimsTaxEstimator';

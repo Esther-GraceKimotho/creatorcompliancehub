@@ -26,6 +26,10 @@ export default function KnowledgeBase() {
       answer: "The Kenya Copyright Board (KECOBO) manages the National Rights Registry (NRR). Registering your videos, scripts, or music provides legal proof of ownership, which is crucial for fighting copyright strikes, claiming royalties, and preventing unauthorized use by AI training bots."
     },
     {
+      question: "What are KECOBO registration prices? What is free and what is paid?",
+      answer: "Under the Kenya Copyright Act Cap 130: FREE services include: (1) Automatic copyright vesting the moment your creative work is fixed in tangible form (Section 22(1)); (2) Creating an account on the National Rights Registry (NRR) via eCitizen; (3) Filing piracy and infringement criminal complaints with the KECOBO Anti-Piracy Unit; (4) Serving digital takedown notices under Section 35B; and (5) Attending public creator education clinics. PAID statutory fees include: (1) Official Certificate of Copyright Registration: KES 1,000 per creative work (payable cashless via eCitizen Paybill 222222); (2) Official Register Search / Title Verification: KES 500; (3) Certified Copy of Register Document: KES 500 for individuals, KES 1,000 for companies; (4) Correction / Amendment of Register entries: KES 500; and (5) Commissioner for Oaths witnessing (private advocate fee of approx. KES 500 - 1,500)."
+    },
+    {
       question: "How do I handle AI Content Compliance?",
       answer: "The AI Bill 2026 requires creators to explicitly disclose if their content uses synthetic media or deepfakes. Our AI Compliance module scans your video descriptions and scripts to ensure you have the correct watermarks and disclosures to avoid high-risk penalties."
     }

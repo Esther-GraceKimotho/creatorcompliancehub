@@ -34,7 +34,6 @@ import {
 } from 'lucide-react';
 import { CreatorIncomeLog, IncomeCategory } from '../types';
 import { useIncome } from '../context/IncomeContext';
-import { useBiometrics } from '../context/BiometricContext';
 import SensitiveShield from './SensitiveShield';
 import { exportElementToPdf } from '../utils/pdfGenerator';
 
@@ -114,10 +113,9 @@ export default function IncomeLogger({
     lastSyncedAt,
     lastSyncedMonthLabel,
     isAutoSyncEnabled,
-    setIsAutoSyncEnabled
+    setIsAutoSyncEnabled,
+    clearAllLogs
   } = useIncome();
-
-  const { settings, triggerBiometricAuth } = useBiometrics();
 
   // Component state
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('ALL');
@@ -334,17 +332,9 @@ export default function IncomeLogger({
     }
   };
 
-  // Export PDF with Biometrics
+  // Export PDF Report
   const handleExportIncomeReport = async () => {
     if (!containerRef.current) return;
-
-    if (settings.isEnabled && settings.requireAuthForPdfExport) {
-      const authorized = await triggerBiometricAuth({
-        reason: 'Authorize Biometrics to export confidential Creator Income & Withholding Tax ledger',
-        target: 'TAX_ESTIMATES'
-      });
-      if (!authorized) return;
-    }
 
     setIsExporting(true);
     try {
@@ -603,13 +593,19 @@ export default function IncomeLogger({
             <option value={2025}>Tax Year 2025</option>
           </select>
 
-          <button
-            onClick={resetToSampleData}
-            className="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
-            title="Reset to Kenyan creator sample data"
-          >
-            Reset Demo
-          </button>
+          {incomeLogs.length > 0 && (
+            <button
+              onClick={() => {
+                if (confirm('Clear all logged income records?')) {
+                  clearAllLogs();
+                }
+              }}
+              className="px-3 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+              title="Clear all logged income records"
+            >
+              Clear Records
+            </button>
+          )}
         </div>
       </div>
 
